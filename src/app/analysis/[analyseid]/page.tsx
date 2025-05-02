@@ -28,6 +28,8 @@ export default function AnalysisPage() {
   const { analyseid } = useParams();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
+  const [existingCourse, setExistingCourse] = useState<any>(null);
+
 
   useEffect(() => {
     const fetchAnalysisData = async () => {
@@ -43,6 +45,22 @@ export default function AnalysisPage() {
     };
 
     if (analyseid) fetchAnalysisData();
+  }, [analyseid]);
+
+  useEffect(() => {
+    const fetchExistingCourse = async () => {
+      try {
+        const res = await fetch(`https://680e3ff2c47cb8074d92884a.mockapi.io/courses?uploadid=${analyseid}`);
+        const data = await res.json();
+        if (data && data.length > 0) {
+          setExistingCourse(data[0]); // Assuming one course per uploadid
+        }
+      } catch (err) {
+        console.error("Failed to fetch existing course", err);
+      }
+    };
+  
+    if (analyseid) fetchExistingCourse();
   }, [analyseid]);
 
   if (loading) return <div className="p-6">Loading...</div>;
@@ -69,6 +87,7 @@ export default function AnalysisPage() {
   const sortedTopics = Array.from(topicMap.values()).sort((a, b) => a.correct / a.total - b.correct / b.total);
   const weakTopics = sortedTopics.filter(t => t.correct / t.total < 0.6);
   const strongTopics = sortedTopics.filter(t => t.correct / t.total >= 0.8);
+
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -153,6 +172,20 @@ export default function AnalysisPage() {
           🎯 Generate Personalized Course
         </button>
       </div>
+      {existingCourse && (
+  <div className="mb-6">
+    <button
+      onClick={() => {
+        // Redirect or handle course start
+        window.location.href = `/course/${existingCourse.id}`;
+      }}
+      className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md"
+    >
+      🚀 Start Course: {existingCourse.course_title}
+    </button>
+  </div>
+)}
+
       <div className="space-y-6">
         {parts.map(part => {
           const partQuestions = questions.filter(q => q.part === part);

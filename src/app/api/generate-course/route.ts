@@ -89,12 +89,28 @@ User Interests: ${interests.length > 0 ? interests.join(", ") : "None"}
       if (!validated.success) {
         throw new Error(validated.error.errors.map((e) => e.message).join("\n"));
       }
-
+    
       const { course_title, weak_modules, strong_modules } = validated.data;
       const timestamp = Math.floor(Date.now() / 1000);
-
+    
       const modules = [...weak_modules, ...strong_modules];
-
+    
+      // ✅ PRE-CHECK: See if any course already exists for this uploadid
+      try {
+        const existing = await axios.get(
+          `https://680e3ff2c47cb8074d92884a.mockapi.io/courses?uploadid=${uploadid}`
+        );
+    
+        if (existing.data && existing.data.length > 0) {
+          console.warn(`Course for uploadid ${uploadid} already exists. Skipping generation.`);
+          return; // ❌ Prevent duplicate entries
+        }
+      } catch (err) {
+        console.error(`Error checking existing course for uploadid ${uploadid}`, err);
+        throw new Error("Failed to verify course duplication.");
+      }
+    
+      // 🟢 No existing course, proceed to save
       for (const module of modules) {
         try {
           await axios.post("https://680e3ff2c47cb8074d92884a.mockapi.io/courses", {
