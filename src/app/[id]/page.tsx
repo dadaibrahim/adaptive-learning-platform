@@ -2,7 +2,7 @@
 
 import { useRouter, useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import axios from "axios"; // ✅ Axios imported
+import axios from "axios";
 
 interface TopicPart {
   part: number;
@@ -16,63 +16,82 @@ interface TopicPart {
 }
 
 export default function Page() {
-  const { id } = useParams();
+  const params = useParams();
+  const router = useRouter();
   const [topics, setTopics] = useState<TopicPart[]>([]);
   const [allCompleted, setAllCompleted] = useState(false);
-  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
+  // Safely extract id from params
+  const id = params?.id as string;
 
   useEffect(() => {
-    if (id) {
-      const combinedId = parseInt(id as string, 10);
-      const uploadid = Math.floor(combinedId / 10);
-      const lastPart = combinedId % 10;
+    if (!id) {
+      setLoading(false);
+      return;
+    }
 
-      const fetchData = async () => {
-        try {
-          const res = await axios.get("https://6807abe0942707d722dc100d.mockapi.io/topics", {
-            headers: { "Cache-Control": "no-store" },
-          });
-          const allData: TopicPart[] = res.data;
-          const filtered = allData
-            .filter((d) => d.uploadid === uploadid && d.part <= lastPart)
-            .sort((a, b) => a.part - b.part);
-          setTopics(filtered);
+    const combinedId = parseInt(id, 10);
+    if (isNaN(combinedId)) {
+      setLoading(false);
+      return;
+    }
 
-          const responses = await Promise.all(
-            filtered.map(async (entry) => {
-              try {
-                const quizRes = await axios.get(
-                  `https://6807abe0942707d722dc100d.mockapi.io/quiz?uploadid=${entry.uploadid}&part=${entry.part}`
-                );
-                const data = quizRes.data;
+    const uploadid = Math.floor(combinedId / 10);
+    const lastPart = combinedId % 10;
 
-                if (Array.isArray(data)) {
-                  const status = data.filter((q: any) => q.user_answer && q.user_answer.trim() !== "");
-                  return status.length > 0;
-                } else {
-                  console.warn("Quiz data is not an array:", data);
-                  return false; // If it's not an array, return false
-                }
-              } catch (error) {
-                console.warn("Failed to fetch individual quiz status:", error);
+    const fetchData = async () => {
+      try {
+        const res = await axios.get("https://6807abe0942707d722dc100d.mockapi.io/topics", {
+          headers: { "Cache-Control": "no-store" },
+        });
+        const allData: TopicPart[] = res.data;
+        const filtered = allData
+          .filter((d) => d.uploadid === uploadid && d.part <= lastPart)
+          .sort((a, b) => a.part - b.part);
+        setTopics(filtered);
+
+        const responses = await Promise.all(
+          filtered.map(async (entry) => {
+            try {
+              const quizRes = await axios.get(
+                `https://6807abe0942707d722dc100d.mockapi.io/quiz?uploadid=${entry.uploadid}&part=${entry.part}`
+              );
+              const data = quizRes.data;
+
+              if (Array.isArray(data)) {
+                const status = data.filter((q: any) => q.user_answer && q.user_answer.trim() !== "");
+                return status.length > 0;
+              } else {
+                console.warn("Quiz data is not an array:", data);
                 return false;
               }
-            })
-          );
+            } catch (error) {
+              console.warn("Failed to fetch individual quiz status:", error);
+              return false;
+            }
+          })
+        );
 
-          setAllCompleted(responses.every(Boolean));
-        } catch (err) {
-          console.error("Error fetching topics:", err);
-        }
-      };
+        setAllCompleted(responses.every(Boolean));
+      } catch (err) {
+        console.error("Error fetching topics:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      fetchData();
-    }
+    fetchData();
   }, [id]);
 
-  if (!id) return <div>Loading...</div>;
+  if (loading) return <div className="p-6">Loading...</div>;
+  if (!id) return <div className="p-6 text-red-500">Invalid ID parameter.</div>;
 
-  const combinedUploadId = parseInt(id as string, 10);
+  const combinedUploadId = parseInt(id, 10);
+  if (isNaN(combinedUploadId)) {
+    return <div className="p-6 text-red-500">Invalid ID format.</div>;
+  }
+
   const uploadid = Math.floor(combinedUploadId / 10);
 
   return (
@@ -98,11 +117,12 @@ export default function Page() {
 
 function QuizCard({ entry }: { entry: TopicPart }) {
   const router = useRouter();
+  const params = useParams();
   const [generationStatus, setGenerationStatus] = useState("Not Generated");
   const [completionStatus, setCompletionStatus] = useState("Not Taken");
   const [loading, setLoading] = useState(false);
 
-  const { id } = useParams();
+  const id = params?.id as string;
   const quizPath = `/${id}/${entry.uploadid * 10 + entry.part}`;
 
   const checkQuizStatus = async () => {
@@ -121,9 +141,6 @@ function QuizCard({ entry }: { entry: TopicPart }) {
         setCompletionStatus("Not Taken");
       }
     } catch (err) {
-      // console.error("Failed to check quiz status:", err);
-      // setGenerationStatus("Error");
-      // setCompletionStatus("Error");
       setGenerationStatus("Not Generated");
     }
   };

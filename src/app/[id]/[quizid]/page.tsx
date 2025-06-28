@@ -17,9 +17,7 @@ interface Question {
 }
 
 export default function QuizPage() {
-  const params= useParams();
-  const id=params.id;
-  const quizid=params.quizid;
+  const params = useParams();
   const router = useRouter();
 
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -27,10 +25,22 @@ export default function QuizPage() {
   const [submitted, setSubmitted] = useState(false);
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
 
-  useEffect(() => {
-    if (!quizid) return;
+  // Safely extract params
+  const id = params?.id as string;
+  const quizid = params?.quizid as string;
 
-    const numericId = parseInt(quizid as string, 10);
+  useEffect(() => {
+    if (!quizid || !id) {
+      setLoading(false);
+      return;
+    }
+
+    const numericId = parseInt(quizid, 10);
+    if (isNaN(numericId)) {
+      setLoading(false);
+      return;
+    }
+
     const uploadid = Math.floor(numericId / 10);
     const part = numericId % 10;
 
@@ -53,7 +63,7 @@ export default function QuizPage() {
     };
 
     fetchQuizData();
-  }, [quizid]);
+  }, [quizid, id]);
 
   const handleAnswerChange = (questionId: string, answer: string) => {
     setQuestions((prev) =>
@@ -81,10 +91,13 @@ export default function QuizPage() {
   };
 
   const handleGoBack = () => {
-    router.push(`/${id}`);
+    if (id) {
+      router.push(`/${id}`);
+    }
   };
 
   if (loading) return <div className="p-6">Loading...</div>;
+  if (!quizid || !id) return <div className="p-6 text-red-500">Invalid parameters.</div>;
   if (questions.length === 0) return <div className="p-6 text-red-500">No questions found.</div>;
 
   return (

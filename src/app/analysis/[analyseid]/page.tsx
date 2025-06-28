@@ -1,4 +1,3 @@
-// app/analysis/[analyseid]/page.tsx
 "use client";
 
 import { useParams } from "next/navigation";
@@ -25,13 +24,20 @@ interface TopicStats {
 }
 
 export default function AnalysisPage() {
-  const { analyseid } = useParams();
+  const params = useParams();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [existingCourse, setExistingCourse] = useState<any>(null);
 
+  // Safely extract analyseid from params
+  const analyseid = params?.analyseid as string;
 
   useEffect(() => {
+    if (!analyseid) {
+      setLoading(false);
+      return;
+    }
+
     const fetchAnalysisData = async () => {
       try {
         const res = await fetch(`https://6807abe0942707d722dc100d.mockapi.io/quiz?uploadid=${analyseid}`);
@@ -44,26 +50,29 @@ export default function AnalysisPage() {
       }
     };
 
-    if (analyseid) fetchAnalysisData();
+    fetchAnalysisData();
   }, [analyseid]);
 
   useEffect(() => {
+    if (!analyseid) return;
+
     const fetchExistingCourse = async () => {
       try {
         const res = await fetch(`https://680e3ff2c47cb8074d92884a.mockapi.io/courses?uploadid=${analyseid}`);
         const data = await res.json();
         if (data && data.length > 0) {
-          setExistingCourse(data[0]); // Assuming one course per uploadid
+          setExistingCourse(data[0]);
         }
       } catch (err) {
         console.error("Failed to fetch existing course", err);
       }
     };
-  
-    if (analyseid) fetchExistingCourse();
+
+    fetchExistingCourse();
   }, [analyseid]);
 
   if (loading) return <div className="p-6">Loading...</div>;
+  if (!analyseid) return <div className="p-6 text-red-500">Invalid analysis ID.</div>;
   if (questions.length === 0) return <div className="p-6 text-red-500">No data available for analysis.</div>;
 
   const total = questions.length;
@@ -71,7 +80,7 @@ export default function AnalysisPage() {
 
   const parts = Array.from(new Set(questions.map(q => q.part))).sort((a, b) => a - b);
 
-  // === Topic Level Evaluation ===
+  // Topic Level Evaluation
   const topicMap = new Map<string, TopicStats>();
 
   for (const q of questions) {
@@ -87,7 +96,6 @@ export default function AnalysisPage() {
   const sortedTopics = Array.from(topicMap.values()).sort((a, b) => a.correct / a.total - b.correct / b.total);
   const weakTopics = sortedTopics.filter(t => t.correct / t.total < 0.6);
   const strongTopics = sortedTopics.filter(t => t.correct / t.total >= 0.8);
-
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -129,6 +137,7 @@ export default function AnalysisPage() {
           </ul>
         )}
       </div>
+
       <div className="mb-6">
         <button
           onClick={async () => {
@@ -138,7 +147,7 @@ export default function AnalysisPage() {
             if (!confirmed) return;
 
             const interestsInput = window.prompt("Please enter your areas of interest (separated by commas):", "");
-            if (interestsInput === null) return; // User cancelled
+            if (interestsInput === null) return;
 
             const interests = interestsInput
               .split(",")
@@ -153,7 +162,7 @@ export default function AnalysisPage() {
                   uploadid: analyseid,
                   strongTopics: strongTopics.map((t) => t.topic),
                   weakTopics: weakTopics.map((t) => t.topic),
-                  interests, // send the new interests array
+                  interests,
                 }),
               });
 
@@ -172,19 +181,19 @@ export default function AnalysisPage() {
           🎯 Generate Personalized Course
         </button>
       </div>
+
       {existingCourse && (
-  <div className="mb-6">
-    <button
-      onClick={() => {
-        // Redirect or handle course start
-        window.location.href = `/course/${existingCourse.id}`;
-      }}
-      className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md"
-    >
-      🚀 Start Course: {existingCourse.course_title}
-    </button>
-  </div>
-)}
+        <div className="mb-6">
+          <button
+            onClick={() => {
+              window.location.href = `/course/${existingCourse.id}`;
+            }}
+            className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md"
+          >
+            🚀 Start Course: {existingCourse.course_title}
+          </button>
+        </div>
+      )}
 
       <div className="space-y-6">
         {parts.map(part => {
