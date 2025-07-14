@@ -22,7 +22,7 @@ const questionsSchema = z.object({
 export async function POST(req: Request) {
   const { uploadid, part } = await req.json();
 
-  const topicRes = await axios.get("https://6807abe0942707d722dc100d.mockapi.io/topics");
+  const topicRes = await axios.get("https://6874a427dd06792b9c9494c0.mockapi.io/topics");
   const topicData = topicRes.data.find((t: { uploadid: any; part: any; }) => t.uploadid === uploadid && t.part === part);
   if (!topicData) {
     return new Response("Topic not found", { status: 404 });
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
   
       for (const q of questions) {
         try {
-          await axios.post("https://6807abe0942707d722dc100d.mockapi.io/quiz", {
+          await axios.post("https://6874a427dd06792b9c9494c0.mockapi.io/quiz", {
             uploadid,
             part,
             topic: q.topic,

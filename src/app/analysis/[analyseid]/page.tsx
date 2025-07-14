@@ -40,7 +40,7 @@ export default function AnalysisPage() {
 
     const fetchAnalysisData = async () => {
       try {
-        const res = await fetch(`https://6807abe0942707d722dc100d.mockapi.io/quiz?uploadid=${analyseid}`);
+        const res = await fetch(`https://6874a427dd06792b9c9494c0.mockapi.io/quiz?uploadid=${analyseid}`);
         const data: Question[] = await res.json();
         setQuestions(data);
       } catch (err) {
@@ -58,7 +58,7 @@ export default function AnalysisPage() {
 
     const fetchExistingCourse = async () => {
       try {
-        const res = await fetch(`https://680e3ff2c47cb8074d92884a.mockapi.io/courses?uploadid=${analyseid}`);
+        const res = await fetch(`https://6874ad03dd06792b9c94b75e.mockapi.io/courses?uploadid=${analyseid}`);
         const data = await res.json();
         if (data && data.length > 0) {
           setExistingCourse(data[0]);

@@ -98,7 +98,7 @@ User Interests: ${interests.length > 0 ? interests.join(", ") : "None"}
       // ✅ PRE-CHECK: See if any course already exists for this uploadid
       try {
         const existing = await axios.get(
-          `https://680e3ff2c47cb8074d92884a.mockapi.io/courses?uploadid=${uploadid}`
+          `https://6874ad03dd06792b9c94b75e.mockapi.io/courses?uploadid=${uploadid}`
         );
     
         if (existing.data && existing.data.length > 0) {

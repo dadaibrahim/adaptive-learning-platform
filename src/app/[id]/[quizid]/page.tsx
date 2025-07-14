@@ -47,7 +47,7 @@ export default function QuizPage() {
     const fetchQuizData = async () => {
       try {
         const res = await fetch(
-          `https://6807abe0942707d722dc100d.mockapi.io/quiz?uploadid=${uploadid}&part=${part}`
+          `https://6874a427dd06792b9c9494c0.mockapi.io/quiz?uploadid=${uploadid}&part=${part}`
         );
         const data: Question[] = await res.json();
         setQuestions(data);
@@ -77,7 +77,7 @@ export default function QuizPage() {
     try {
       await Promise.all(
         questions.map((q) =>
-          fetch(`https://6807abe0942707d722dc100d.mockapi.io/quiz/${q.id}`, {
+          fetch(`hhttps://6874a427dd06792b9c9494c0.mockapi.io/quiz/${q.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ user_answer: q.user_answer }),

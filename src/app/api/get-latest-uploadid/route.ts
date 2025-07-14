@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const res = await fetch("https://6807abe0942707d722dc100d.mockapi.io/topics");
+    const res = await fetch("https://6874a427dd06792b9c9494c0.mockapi.io/topics");
 
     if (!res.ok) {
       console.error("Failed to fetch topics from MockAPI");

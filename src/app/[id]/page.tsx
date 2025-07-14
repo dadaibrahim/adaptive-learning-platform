@@ -42,7 +42,7 @@ export default function Page() {
 
     const fetchData = async () => {
       try {
-        const res = await axios.get("https://6807abe0942707d722dc100d.mockapi.io/topics", {
+        const res = await axios.get("https://6874a427dd06792b9c9494c0.mockapi.io/topics", {
           headers: { "Cache-Control": "no-store" },
         });
         const allData: TopicPart[] = res.data;
@@ -55,7 +55,7 @@ export default function Page() {
           filtered.map(async (entry) => {
             try {
               const quizRes = await axios.get(
-                `https://6807abe0942707d722dc100d.mockapi.io/quiz?uploadid=${entry.uploadid}&part=${entry.part}`
+                `https://6874a427dd06792b9c9494c0.mockapi.io/quiz?uploadid=${entry.uploadid}&part=${entry.part}`
               );
               const data = quizRes.data;
 
@@ -128,7 +128,7 @@ function QuizCard({ entry }: { entry: TopicPart }) {
   const checkQuizStatus = async () => {
     try {
       const res = await axios.get(
-        `https://6807abe0942707d722dc100d.mockapi.io/quiz?uploadid=${entry.uploadid}&part=${entry.part}`
+        `https://6874a427dd06792b9c9494c0.mockapi.io/quiz?uploadid=${entry.uploadid}&part=${entry.part}`
       );
       const data = res.data;
 
